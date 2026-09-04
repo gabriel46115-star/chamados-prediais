@@ -13,7 +13,7 @@ object RetrofitClient {
     // 10.0.2.2 é o endereço que o EMULADOR usa para enxergar o "localhost" da máquina host.
     // Se um dia testar em celular físico na mesma rede Wi-Fi, troque pelo IP local do PC
     // (ex: "http://192.168.0.10:8080/") e libere a porta 8080 no firewall.
-    private const val BASE_URL = "http://10.0.2.2:8080/"
+    private const val BASE_URL = "http://localhost:8080/"
 
     private var retrofit: Retrofit? = null
 
