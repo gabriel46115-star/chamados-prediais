@@ -1,8 +1,6 @@
 package com.br.fiec.chamados.data.model
 
-import java.util.UUID
-
-// Espelha StatusSolicitacao do backend (features.solicitacao.model.enums)
+// Espelha StatusSolicitacao do backend
 enum class StatusSolicitacao {
     ABERTO,
     EM_ANDAMENTO,
@@ -17,6 +15,23 @@ enum class PrioridadeSolicitacao {
     ALTA
 }
 
+// Espelha TipoSolicitacao do backend
+enum class TipoSolicitacao {
+    HARDWARE,
+    SOFTWARE,
+    REDE,
+    ACESSO,
+    MANUTENCAO,
+    OUTROS
+}
+
+// Espelha AnexoResponseDTO do backend
+data class AnexoResponseDTO(
+    val id: String,
+    val nomeArquivo: String,
+    val url: String
+)
+
 // Espelha SolicitacaoResponseDTO do backend
 data class SolicitacaoResponseDTO(
     val id: String, // UUID vem como String no JSON
@@ -24,11 +39,16 @@ data class SolicitacaoResponseDTO(
     val descricao: String,
     val status: StatusSolicitacao,
     val prioridade: PrioridadeSolicitacao,
+    val tipo: TipoSolicitacao,
+    val numeroPatrimonio: String?,
+    val localizacaoProblema: String,
     val usuarioSolicitanteId: String?,
     val usuarioSolicitanteNome: String?,
     val tecnicoResponsavelId: String?,
     val tecnicoResponsavelNome: String?,
-    val createdAt: String // LocalDateTime vem como String ISO
+    val dataAbertura: String, // LocalDateTime vem como String ISO
+    val dataFinalizacao: String?,
+    val anexos: List<AnexoResponseDTO> = emptyList()
 )
 
 // Espelha a estrutura de paginação do Spring (Page<T>) retornada por /solicitacoes/search

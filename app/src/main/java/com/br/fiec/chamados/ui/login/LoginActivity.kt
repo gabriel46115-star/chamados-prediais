@@ -8,11 +8,11 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.br.fiec.chamados.MainActivity
 import com.br.fiec.chamados.R
 import com.br.fiec.chamados.data.TokenManager
 import com.br.fiec.chamados.data.model.LoginRequestDTO
 import com.br.fiec.chamados.data.network.RetrofitClient
+import com.br.fiec.chamados.ui.chamados.ListaChamadosActivity
 import kotlinx.coroutines.launch
 import retrofit2.Response
 
@@ -82,7 +82,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun irParaMain() {
-        startActivity(Intent(this, MainActivity::class.java))
+        startActivity(Intent(this, ListaChamadosActivity::class.java))
         finish()
     }
 
