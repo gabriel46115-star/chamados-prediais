@@ -6,6 +6,7 @@ import com.br.fiec.chamados.data.model.PrioridadeSolicitacao
 import com.br.fiec.chamados.data.model.RegisterRequestDTO
 import com.br.fiec.chamados.data.model.SolicitacaoResponseDTO
 import com.br.fiec.chamados.data.model.StatusSolicitacao
+import com.br.fiec.chamados.data.model.TokenRequestDTO
 import com.br.fiec.chamados.data.model.TokenResponseDTO
 import com.br.fiec.chamados.data.model.UserMeDTO
 import retrofit2.Response
@@ -24,15 +25,17 @@ interface ApiService {
     @POST("api/v1/auth/register")
     suspend fun register(@Body request: RegisterRequestDTO): Response<Unit>
 
+    // Login social: recebe o ID Token do FIREBASE (não o do Google puro — veja o
+    // fluxo completo no LoginActivity) e devolve o JWT da aplicação, igual ao /login normal.
+    @POST("api/v1/users/auth/firebase")
+    suspend fun loginComFirebase(@Body request: TokenRequestDTO): Response<TokenResponseDTO>
+
     // ---- Users (rotas protegidas, exigem token) ----
 
     @GET("api/v1/users/me")
     suspend fun getMe(): Response<UserMeDTO>
 
     // ---- Solicitacao / Chamados (rotas protegidas) ----
-    // Filtros espelham SolicitacaoSearchFilterDTO do backend. Todos opcionais.
-    // Criação (POST multipart) ainda não implementada no app — endpoint existe no backend,
-    // mas fica pra próxima etapa.
 
     @GET("api/v1/solicitacoes/search")
     suspend fun searchSolicitacoes(

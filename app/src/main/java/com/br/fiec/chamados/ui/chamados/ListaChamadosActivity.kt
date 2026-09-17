@@ -1,5 +1,6 @@
 package com.br.fiec.chamados.ui.chamados
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -8,7 +9,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.br.fiec.chamados.R
+import com.br.fiec.chamados.data.TokenManager
 import com.br.fiec.chamados.data.network.RetrofitClient
+import com.br.fiec.chamados.ui.login.LoginActivity
 import kotlinx.coroutines.launch
 
 class ListaChamadosActivity : AppCompatActivity() {
@@ -59,8 +62,10 @@ class ListaChamadosActivity : AppCompatActivity() {
                         tvVazioOuErro.visibility = android.view.View.GONE
                     }
                 } else if (response.code() == 401 || response.code() == 403) {
-                    // Token expirado (dura 30 min) ou inválido
-                    mostrarMensagem("Sua sessão expirou. Faça login novamente.")
+                    // Token expirado (dura 30 min) ou inválido: limpa e manda de volta pro login
+                    TokenManager(this@ListaChamadosActivity).clearToken()
+                    startActivity(Intent(this@ListaChamadosActivity, LoginActivity::class.java))
+                    finish()
                 } else {
                     mostrarMensagem("Não foi possível carregar os chamados (erro ${response.code()}).")
                 }

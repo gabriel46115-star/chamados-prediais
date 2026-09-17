@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "355480871385",
+    "project_id": "kipper-56bb0",
+    "storage_bucket": "kipper-56bb0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:355480871385:android:e0487fedc8e0b70b99f9c8",
+        "android_client_info": {
+          "package_name": "com.br.fiec.chamadosprediais"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "355480871385-gr0g4laqnl5rv1v01g10seok48alkc9g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.br.fiec.chamadosprediais",
+            "certificate_hash": "819fff9f7dcd19cdecfa1cc4f1239e93734329f8"
+          }
+        },
+        {
+          "client_id": "355480871385-8q4850tqh2shrf6qkf5li497lgf9m42m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBDb2IbHoL8OC-66tLFiPqDNFfgahsuf14"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "355480871385-8q4850tqh2shrf6qkf5li497lgf9m42m.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
