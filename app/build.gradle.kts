@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -18,6 +20,19 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(localPropertiesFile.inputStream())
+        }
+        val webClientId = localProperties.getProperty("WEB_CLIENT_ID", "").replace("\"", "").trim()
+        buildConfigField(
+            "String",
+            "WEB_CLIENT_ID",
+            "\"$webClientId\""
+        )
+
     }
 
     buildTypes {
@@ -33,7 +48,10 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
+        viewBinding = true
     }
+
 }
 
 dependencies {
@@ -73,5 +91,12 @@ dependencies {
     // Firebase (BOM controla as versões dos módulos abaixo)
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
     implementation("com.google.firebase:firebase-auth-ktx")
+
+    // Credential Manager (substitui o uso direto do GoogleSignInClient)
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
+    implementation("com.google.firebase:firebase-messaging-ktx")
 
 }
