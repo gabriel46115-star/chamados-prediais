@@ -1,5 +1,6 @@
 package com.br.fiec.chamados.ui.chamados
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,7 +10,8 @@ import com.br.fiec.chamados.R
 import com.br.fiec.chamados.data.model.SolicitacaoResponseDTO
 
 class ChamadoAdapter(
-    private val chamados: MutableList<SolicitacaoResponseDTO> = mutableListOf()
+    private val chamados: MutableList<SolicitacaoResponseDTO> = mutableListOf(),
+    private val onItemClick: ((SolicitacaoResponseDTO) -> Unit)? = null
 ) : RecyclerView.Adapter<ChamadoAdapter.ChamadoViewHolder>() {
 
     class ChamadoViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -29,6 +31,18 @@ class ChamadoAdapter(
         holder.tvTitulo.text = chamado.titulo
         holder.tvStatus.text = chamado.status.name
         holder.tvTipo.text = chamado.tipo.name
+
+        holder.itemView.setOnClickListener {
+            if (onItemClick != null) {
+                onItemClick.invoke(chamado)
+            } else {
+                val context = holder.itemView.context
+                val intent = Intent(context, DetalheChamadoActivity::class.java).apply {
+                    putExtra("CHAMADO_ID", chamado.id)
+                }
+                context.startActivity(intent)
+            }
+        }
     }
 
     override fun getItemCount(): Int = chamados.size

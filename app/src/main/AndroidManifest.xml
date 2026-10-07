@@ -43,9 +43,19 @@
 
         <!-- singleTop para reutilizar a Activity ao clicar na notificação -->
         <activity
-            android:name=".ui.chamados.ListaChamadosActivity"
+            android:name="com.br.fiec.chamados.ui.chamados.ListaChamadosActivity"
             android:exported="false"
             android:launchMode="singleTop" />
+
+        <activity
+            android:name="com.br.fiec.chamados.ui.chamados.NovoChamadoActivity"
+            android:exported="false"
+            android:label="Novo Chamado" />
+
+        <activity
+            android:name="com.br.fiec.chamados.ui.chamados.DetalheChamadoActivity"
+            android:exported="false"
+            android:label="Detalhes do Chamado" />
 
     </application>
 

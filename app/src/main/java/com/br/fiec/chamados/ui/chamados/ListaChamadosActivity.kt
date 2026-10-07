@@ -25,14 +25,29 @@ import kotlinx.coroutines.launch
 class ListaChamadosActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityListaChamadosBinding
-    private val adapter = ChamadoAdapter()
+    private val adapter = ChamadoAdapter { chamado ->
+        val intent = Intent(this, DetalheChamadoActivity::class.java).apply {
+            putExtra("CHAMADO_ID", chamado.id)
+        }
+        startActivity(intent)
+    }
 
-    // Contrato para permissão de notificação no Android 13+
+    // 1. Registro do contrato para solicitar a permissão de notificação
     private val requestNotificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (!isGranted) {
-            Toast.makeText(this, "Permissão de notificação negada.", Toast.LENGTH_SHORT).show()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Permissão concedida: as notificações FCM serão exibidas normalmente
+        } else {
+            mostrarMensagem("As notificações do aplicativo estão desativadas.")
+        }
+    }
+
+    private val novoChamadoLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            carregarChamados()
         }
     }
 
@@ -47,12 +62,24 @@ class ListaChamadosActivity : AppCompatActivity() {
         criarCanalNotificacao()
         solicitarPermissaoNotificacao()
 
+        binding.fabNovoChamado.setOnClickListener {
+            novoChamadoLauncher.launch(Intent(this, NovoChamadoActivity::class.java))
+        }
+
         // Carrega os dados do perfil e a lista de chamados
         carregarPerfilUsuario()
         carregarChamados()
 
         // Trata o clique na notificação caso a app estivesse fechada
         processarIntentNotificacao(intent)
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 1001 && resultCode == RESULT_OK) {
+            carregarChamados()
+        }
     }
 
     override fun onNewIntent(intent: Intent) {

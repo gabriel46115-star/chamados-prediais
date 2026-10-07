@@ -1,23 +1,14 @@
 package com.br.fiec.chamados.data.network
 
-import com.br.fiec.chamados.data.model.LoginRequestDTO
-import com.br.fiec.chamados.data.model.PageResponse
-import com.br.fiec.chamados.data.model.PrioridadeSolicitacao
-import com.br.fiec.chamados.data.model.RegisterRequestDTO
-import com.br.fiec.chamados.data.model.SolicitacaoResponseDTO
-import com.br.fiec.chamados.data.model.StatusSolicitacao
-import com.br.fiec.chamados.data.model.TokenRequestDTO
-import com.br.fiec.chamados.data.model.TokenResponseDTO
-import com.br.fiec.chamados.data.model.UserMeDTO
+import com.br.fiec.chamados.data.model.*
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.Query
+import retrofit2.http.*
 
 interface ApiService {
 
-    // ---- Auth (rotas públicas, não exigem token) ----
+    // ---- Auth ----
 
     @POST("api/v1/auth/login")
     suspend fun login(@Body request: LoginRequestDTO): Response<TokenResponseDTO>
@@ -25,17 +16,15 @@ interface ApiService {
     @POST("api/v1/auth/register")
     suspend fun register(@Body request: RegisterRequestDTO): Response<Unit>
 
-    // Login social: recebe o ID Token do FIREBASE (não o do Google puro — veja o
-    // fluxo completo no LoginActivity) e devolve o JWT da aplicação, igual ao /login normal.
     @POST("api/v1/users/auth/firebase")
     suspend fun loginComFirebase(@Body request: TokenRequestDTO): Response<TokenResponseDTO>
 
-    // ---- Users (rotas protegidas, exigem token) ----
+    // ---- Users ----
 
     @GET("api/v1/users/me")
     suspend fun getMe(): Response<UserMeDTO>
 
-    // ---- Solicitacao / Chamados (rotas protegidas) ----
+    // ---- Solicitacao / Chamados ----
 
     @GET("api/v1/solicitacoes/search")
     suspend fun searchSolicitacoes(
@@ -48,6 +37,40 @@ interface ApiService {
         @Query("usuarioSolicitanteId") usuarioSolicitanteId: String? = null,
         @Query("tecnicoResponsavelId") tecnicoResponsavelId: String? = null,
         @Query("page") page: Int = 0,
-        @Query("size") size: Int = 20
+        @Query("size") size: Int = 10
     ): Response<PageResponse<SolicitacaoResponseDTO>>
+
+    @GET("api/v1/solicitacoes/{id}")
+    suspend fun buscarPorId(
+        @Path("id") id: String
+    ): Response<SolicitacaoResponseDTO>
+
+    // Criação de Chamado com Multipart:
+    // "dados" -> RequestBody JSON
+    // "anexos" -> Lista de MultipartBody.Part
+    @Multipart
+    @POST("api/v1/solicitacoes")
+    suspend fun criarSolicitacao(
+        @Part("dados") dados: RequestBody,
+        @Part anexos: List<MultipartBody.Part>? = null
+    ): Response<SolicitacaoResponseDTO>
+
+    // Admin / Gestão de Chamados
+    @PATCH("api/v1/solicitacoes/{id}/status")
+    suspend fun atualizarStatus(
+        @Path("id") id: String,
+        @Query("status") status: StatusSolicitacao
+    ): Response<SolicitacaoResponseDTO>
+
+    @PATCH("api/v1/solicitacoes/{id}/prioridade")
+    suspend fun atualizarPrioridade(
+        @Path("id") id: String,
+        @Query("prioridade") prioridade: PrioridadeSolicitacao
+    ): Response<SolicitacaoResponseDTO>
+
+    @PATCH("api/v1/solicitacoes/{id}/tecnico")
+    suspend fun atribuirTecnico(
+        @Path("id") id: String,
+        @Query("tecnicoId") tecnicoId: String
+    ): Response<SolicitacaoResponseDTO>
 }

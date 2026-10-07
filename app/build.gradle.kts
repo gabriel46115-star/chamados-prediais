@@ -83,8 +83,9 @@ dependencies {
     // Corrotinas
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
-    // AppCompat
+    // AppCompat & Material
     implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("com.google.android.material:material:1.12.0")
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:21.2.0")
 

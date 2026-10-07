@@ -25,6 +25,14 @@ enum class TipoSolicitacao {
     OUTROS
 }
 
+// DTO para envio de nova solicitação de chamado
+data class CreateSolicitacaoRequestDTO(
+    val tipo: TipoSolicitacao,
+    val localizacaoProblema: String,
+    val descricao: String,
+    val numeroPatrimonio: String? = null
+)
+
 // Espelha AnexoResponseDTO do backend
 data class AnexoResponseDTO(
     val id: String,

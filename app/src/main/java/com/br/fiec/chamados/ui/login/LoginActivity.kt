@@ -6,6 +6,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
@@ -22,6 +23,9 @@ import com.br.fiec.chamados.data.model.LoginRequestDTO
 import com.br.fiec.chamados.data.model.TokenRequestDTO
 import com.br.fiec.chamados.data.network.RetrofitClient
 import com.br.fiec.chamados.ui.chamados.ListaChamadosActivity
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.common.api.ApiException
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
@@ -46,6 +50,36 @@ class LoginActivity : AppCompatActivity() {
 
     private lateinit var credentialManager: CredentialManager
     private lateinit var firebaseAuth: FirebaseAuth
+
+    // 1. Registro do contrato para o fluxo do Google Sign-In (StartActivityForResult)
+    private val googleSignInLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK && result.data != null) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            try {
+                val account = task.getResult(ApiException::class.java)
+                val idToken = account?.idToken
+
+                if (idToken != null) {
+                    autenticarNoFirebase(idToken)
+                } else {
+                    mostrarErro("Não foi possível obter o ID Token do Google.")
+                }
+            } catch (e: ApiException) {
+                mostrarErro("Erro na autenticação do Google (Código ${e.statusCode}).")
+            }
+        } else {
+            mostrarCarregando(false)
+        }
+    }
+
+    // 2. Função para disparar a tela de seleção de contas do Google
+    private fun dispararLoginGoogle(googleSignInClient: GoogleSignInClient) {
+        mostrarCarregando(true)
+        val signInIntent = googleSignInClient.signInIntent
+        googleSignInLauncher.launch(signInIntent)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

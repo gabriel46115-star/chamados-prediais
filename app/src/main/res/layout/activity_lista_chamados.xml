@@ -27,4 +27,13 @@
         android:textSize="15sp"
         android:visibility="gone" />
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabNovoChamado"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:contentDescription="Novo Chamado"
+        android:src="@android:drawable/ic_input_add" />
+
 </FrameLayout>
