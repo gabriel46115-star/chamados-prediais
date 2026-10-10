@@ -6,9 +6,12 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.br.fiec.chamados.data.model.SolicitacaoResponseDTO
+import com.br.fiec.chamados.data.model.rotuloOuPadrao
 import com.br.fiec.chamados.data.network.RetrofitClient
 import com.br.fiec.chamados.databinding.ActivityDetalheChamadoBinding
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class DetalheChamadoActivity : AppCompatActivity() {
 
@@ -69,15 +72,23 @@ class DetalheChamadoActivity : AppCompatActivity() {
 
     private fun exibirDadosChamado(chamado: SolicitacaoResponseDTO) {
         binding.apply {
-            tvTituloTipo.text = chamado.tipo.name
-            tvStatus.text = chamado.status.name
-            tvPrioridade.text = "Prioridade: ${chamado.prioridade.name}"
-            tvLocalizacao.text = chamado.localizacaoProblema
+            tvTituloTipo.text = listOfNotNull(chamado.tipoIcone, chamado.tipoNome)
+                .joinToString(" ")
+                .ifBlank { "Tipo não informado" }
+            tvStatus.text = chamado.status.rotuloOuPadrao()
+            tvPrioridade.text = if (chamado.urgente == true) {
+                "Prioridade: ${chamado.prioridade.rotuloOuPadrao()} · URGENTE"
+            } else {
+                "Prioridade: ${chamado.prioridade.rotuloOuPadrao()}"
+            }
+            // Local/setor cadastrados (quando houver) + a descrição livre digitada pelo solicitante
+            tvLocalizacao.text = listOfNotNull(chamado.setorNome, chamado.localNome, chamado.localizacaoProblema)
+                .joinToString(" — ")
             tvPatrimonio.text = chamado.numeroPatrimonio ?: "Não informado"
             tvSolicitante.text = chamado.usuarioSolicitanteNome ?: "Não identificado"
             tvTecnico.text = chamado.tecnicoResponsavelNome ?: "Não atribuído"
             tvDescricao.text = chamado.descricao
-            tvDataAbertura.text = chamado.dataAbertura ?: "-"
+            tvDataAbertura.text = formatarData(chamado.dataAbertura)
 
             // Exibição de anexos
             val qtdAnexos = chamado.anexos?.size ?: 0
@@ -86,6 +97,16 @@ class DetalheChamadoActivity : AppCompatActivity() {
             } else {
                 "Nenhum anexo disponível"
             }
+        }
+    }
+
+    /** Converte o LocalDateTime ISO do backend (ex: 2026-10-07T21:30:15.123) para dd/MM/yyyy HH:mm. */
+    private fun formatarData(iso: String?): String {
+        if (iso.isNullOrBlank()) return "-"
+        return try {
+            LocalDateTime.parse(iso).format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+        } catch (e: Exception) {
+            iso
         }
     }
 

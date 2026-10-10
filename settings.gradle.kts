@@ -24,4 +24,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "Chamados Prediais"
 include(":app")
- 

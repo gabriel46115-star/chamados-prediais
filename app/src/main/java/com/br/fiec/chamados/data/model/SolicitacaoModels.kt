@@ -1,62 +1,95 @@
 package com.br.fiec.chamados.data.model
 
-// Espelha StatusSolicitacao do backend
-enum class StatusSolicitacao {
-    ABERTO,
-    EM_ANDAMENTO,
-    CONCLUIDO,
-    CANCELADO
+// Espelha StatusSolicitacao do backend (versão V4)
+enum class StatusSolicitacao(val rotulo: String) {
+    ABERTO("Aberto"),
+    EM_ANDAMENTO("Em andamento"),
+    AGUARDANDO_ASSISTENCIA_EXTERNA("Aguardando assistência externa"),
+    CONCLUIDO("Concluído"),
+    FINALIZADA("Finalizada"),
+    REJEITADA("Rejeitada"),
+    CANCELADO("Cancelado")
 }
 
-// Espelha PrioridadeSolicitacao do backend
-enum class PrioridadeSolicitacao {
-    BAIXA,
-    MEDIA,
-    ALTA
+// Espelha PrioridadeSolicitacao do backend (versão V4)
+enum class PrioridadeSolicitacao(val rotulo: String) {
+    BAIXA("Baixa"),
+    MEDIA("Média"),
+    ALTA("Alta"),
+    URGENTE("Urgente")
 }
 
-// Espelha TipoSolicitacao do backend
-enum class TipoSolicitacao {
-    HARDWARE,
-    SOFTWARE,
-    REDE,
-    ACESSO,
-    MANUTENCAO,
-    OUTROS
+// O Gson não chama construtores: se o backend mandar um valor de enum que o app
+// ainda não conhece, o campo chega como null mesmo sendo declarado não-nulo.
+// Por isso status/prioridade são anuláveis e a tela usa estas funções para exibir.
+fun StatusSolicitacao?.rotuloOuPadrao(): String = this?.rotulo ?: "Status desconhecido"
+fun PrioridadeSolicitacao?.rotuloOuPadrao(): String = this?.rotulo ?: "Não definida"
+
+// Espelha a entidade TipoChamado devolvida por GET /api/v1/admin/tipos.
+// Os tipos agora são cadastrados no banco (com SLA), não mais um enum fixo.
+data class TipoChamadoDTO(
+    val id: String,
+    val nome: String,
+    val icone: String?,
+    val slaHoras: Int?
+) {
+    // Usado pelo ArrayAdapter do Spinner para exibir o item
+    override fun toString(): String = if (icone.isNullOrBlank()) nome else "$icone $nome"
 }
 
-// DTO para envio de nova solicitação de chamado
+// Espelha CreateSolicitacaoRequestDTO do backend (versão V4)
 data class CreateSolicitacaoRequestDTO(
-    val tipo: TipoSolicitacao,
+    val tipoId: String,
     val localizacaoProblema: String,
     val descricao: String,
-    val numeroPatrimonio: String? = null
+    val numeroPatrimonio: String? = null,
+    val localId: String? = null
 )
 
-// Espelha AnexoResponseDTO do backend
+// Espelha AnexoResponseDTO do backend. A url é relativa (ex: "/uploads/...");
+// para exibir a imagem é preciso concatenar com a BASE_URL.
 data class AnexoResponseDTO(
     val id: String,
     val nomeArquivo: String,
-    val url: String
+    val url: String,
+    val createdAt: String?
 )
 
-// Espelha SolicitacaoResponseDTO do backend
+// Espelha AjudanteDTO do backend
+data class AjudanteDTO(
+    val id: String,
+    val nome: String?
+)
+
+// Espelha SolicitacaoResponseDTO do backend (versão V4).
+// UUIDs e LocalDateTime chegam como String no JSON.
 data class SolicitacaoResponseDTO(
-    val id: String, // UUID vem como String no JSON
+    val id: String,
     val titulo: String,
     val descricao: String,
-    val status: StatusSolicitacao,
-    val prioridade: PrioridadeSolicitacao,
-    val tipo: TipoSolicitacao,
+    val status: StatusSolicitacao?,
+    val prioridade: PrioridadeSolicitacao?,
+    val tipoId: String?,
+    val tipoNome: String?,
+    val tipoIcone: String?,
+    val localId: String?,
+    val localNome: String?,
+    val setorId: String?,
+    val setorNome: String?,
     val numeroPatrimonio: String?,
     val localizacaoProblema: String,
+    val urgente: Boolean?,
     val usuarioSolicitanteId: String?,
     val usuarioSolicitanteNome: String?,
     val tecnicoResponsavelId: String?,
     val tecnicoResponsavelNome: String?,
-    val dataAbertura: String, // LocalDateTime vem como String ISO
+    val ajudantes: List<AjudanteDTO>?,
+    val dataAbertura: String?,
+    val dataAtualizacao: String?,
+    val dataConclusao: String?,
     val dataFinalizacao: String?,
-    val anexos: List<AnexoResponseDTO> = emptyList()
+    val motivoRejeicao: String?,
+    val anexos: List<AnexoResponseDTO>?
 )
 
 // Espelha a estrutura de paginação do Spring (Page<T>) retornada por /solicitacoes/search

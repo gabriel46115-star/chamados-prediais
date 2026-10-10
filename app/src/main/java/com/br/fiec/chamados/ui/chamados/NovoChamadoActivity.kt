@@ -9,7 +9,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.br.fiec.chamados.data.model.CreateSolicitacaoRequestDTO
-import com.br.fiec.chamados.data.model.TipoSolicitacao
+import com.br.fiec.chamados.data.model.TipoChamadoDTO
 import com.br.fiec.chamados.data.network.RetrofitClient
 import com.br.fiec.chamados.databinding.ActivityNovoChamadoBinding
 import com.google.gson.Gson
@@ -24,6 +24,9 @@ class NovoChamadoActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityNovoChamadoBinding
     private val listaUrisSelecionadas = mutableListOf<Uri>()
+
+    // Só libera o envio depois que os tipos de chamado forem carregados da API
+    private var tiposCarregados = false
 
     // Contrato para selecionar múltiplas imagens da galeria
     private val selecionarImagensLauncher = registerForActivityResult(
@@ -45,10 +48,66 @@ class NovoChamadoActivity : AppCompatActivity() {
         setupListeners()
     }
 
+    /**
+     * Na versão V4 do backend os tipos de chamado são cadastrados pelo administrador
+     * no banco (com SLA próprio), então a lista vem de GET /api/v1/admin/tipos.
+     */
     private fun setupDropdown() {
-        val tipos = TipoSolicitacao.entries.map { it.name }
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, tipos)
-        binding.spinnerTipo.adapter = adapter
+        binding.btnEnviar.isEnabled = false
+
+        lifecycleScope.launch {
+            try {
+                val api = RetrofitClient.getApiService(this@NovoChamadoActivity)
+                val response = api.listarTipos()
+
+                if (response.isSuccessful) {
+                    val tipos = response.body().orEmpty().sortedBy { it.nome }
+                    if (tipos.isEmpty()) {
+                        mostrarAvisoNoSpinner("Nenhum tipo de chamado cadastrado")
+                        Toast.makeText(
+                            this@NovoChamadoActivity,
+                            "Nenhum tipo de chamado cadastrado. Peça ao administrador para cadastrar.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        return@launch
+                    }
+                    binding.spinnerTipo.adapter = ArrayAdapter(
+                        this@NovoChamadoActivity,
+                        android.R.layout.simple_spinner_dropdown_item,
+                        tipos
+                    )
+                    tiposCarregados = true
+                    binding.btnEnviar.isEnabled = true
+                } else {
+                    mostrarAvisoNoSpinner("Erro ao carregar os tipos (código ${response.code()})")
+                    Toast.makeText(
+                        this@NovoChamadoActivity,
+                        "Erro ao carregar os tipos de chamado (Código ${response.code()})",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            } catch (e: Exception) {
+                mostrarAvisoNoSpinner("Sem conexão com o servidor")
+                Toast.makeText(
+                    this@NovoChamadoActivity,
+                    "Falha de conexão ao carregar os tipos de chamado.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+
+    /**
+     * Um Spinner sem itens não abre ao ser tocado, o que parece um defeito. Quando os tipos
+     * não puderem ser carregados, o motivo é exibido como item único e desabilitado.
+     */
+    private fun mostrarAvisoNoSpinner(mensagem: String) {
+        binding.spinnerTipo.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_dropdown_item,
+            listOf(mensagem)
+        )
+        binding.spinnerTipo.isEnabled = false
     }
 
     private fun setupListeners() {
@@ -69,7 +128,12 @@ class NovoChamadoActivity : AppCompatActivity() {
         val localizacao = binding.etLocalizacao.text.toString().trim()
         val descricao = binding.etDescricao.text.toString().trim()
         val patrimonio = binding.etPatrimonio.text.toString().trim().ifEmpty { null }
-        val tipoSelecionado = binding.spinnerTipo.selectedItem?.toString()
+        val tipoSelecionado = binding.spinnerTipo.selectedItem as? TipoChamadoDTO
+
+        if (tipoSelecionado == null) {
+            Toast.makeText(this, "Selecione o tipo do chamado", Toast.LENGTH_SHORT).show()
+            return
+        }
 
         if (localizacao.isEmpty()) {
             binding.etLocalizacao.error = "Informe a localização do problema"
@@ -81,14 +145,8 @@ class NovoChamadoActivity : AppCompatActivity() {
             return
         }
 
-        val tipoEnum = try {
-            TipoSolicitacao.valueOf(tipoSelecionado ?: "MANUTENCAO")
-        } catch (e: Exception) {
-            TipoSolicitacao.MANUTENCAO
-        }
-
         val dto = CreateSolicitacaoRequestDTO(
-            tipo = tipoEnum,
+            tipoId = tipoSelecionado.id,
             localizacaoProblema = localizacao,
             descricao = descricao,
             numeroPatrimonio = patrimonio
@@ -149,7 +207,7 @@ class NovoChamadoActivity : AppCompatActivity() {
 
     private fun mostrarCarregando(carregando: Boolean) {
         binding.progressBar.visibility = if (carregando) View.VISIBLE else View.GONE
-        binding.btnEnviar.isEnabled = !carregando
+        binding.btnEnviar.isEnabled = !carregando && tiposCarregados
         binding.btnSelecionarFotos.isEnabled = !carregando
     }
 }

@@ -86,12 +86,9 @@ dependencies {
     // AppCompat & Material
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
-    // Google Sign-In
-    implementation("com.google.android.gms:play-services-auth:21.2.0")
 
     // Firebase (BOM controla as versões dos módulos abaixo)
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
-    implementation("com.google.firebase:firebase-auth-ktx")
 
     // Credential Manager (substitui o uso direto do GoogleSignInClient)
     implementation("androidx.credentials:credentials:1.3.0")

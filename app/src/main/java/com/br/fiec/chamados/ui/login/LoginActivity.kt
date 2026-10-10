@@ -2,11 +2,6 @@ package com.br.fiec.chamados.ui.login
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ProgressBar
-import android.widget.TextView
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
@@ -17,21 +12,18 @@ import androidx.credentials.exceptions.GetCredentialException
 import androidx.credentials.exceptions.NoCredentialException
 import androidx.lifecycle.lifecycleScope
 import com.br.fiec.chamados.BuildConfig
-import com.br.fiec.chamados.R
 import com.br.fiec.chamados.data.TokenManager
 import com.br.fiec.chamados.data.model.LoginRequestDTO
-import com.br.fiec.chamados.data.model.TokenRequestDTO
+import com.br.fiec.chamados.data.model.GoogleTokenRequestDTO
+import com.br.fiec.chamados.data.network.AuthInterceptor
 import com.br.fiec.chamados.data.network.RetrofitClient
+import com.br.fiec.chamados.databinding.ActivityLoginBinding
 import com.br.fiec.chamados.ui.chamados.ListaChamadosActivity
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInClient
-import com.google.android.gms.common.api.ApiException
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 /**
  * Login por e-mail/senha (backend próprio) e login social com Google, este
@@ -40,81 +32,43 @@ import kotlinx.coroutines.launch
  */
 class LoginActivity : AppCompatActivity() {
 
-    private lateinit var etEmail: EditText
-    private lateinit var etSenha: EditText
-    private lateinit var btnEntrar: Button
-    private lateinit var btnEntrarComGoogle: Button
-    private lateinit var progressBar: ProgressBar
-    private lateinit var tvErro: TextView
+    private lateinit var binding: ActivityLoginBinding
     private lateinit var tokenManager: TokenManager
 
     private lateinit var credentialManager: CredentialManager
-    private lateinit var firebaseAuth: FirebaseAuth
-
-    // 1. Registro do contrato para o fluxo do Google Sign-In (StartActivityForResult)
-    private val googleSignInLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == RESULT_OK && result.data != null) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-            try {
-                val account = task.getResult(ApiException::class.java)
-                val idToken = account?.idToken
-
-                if (idToken != null) {
-                    autenticarNoFirebase(idToken)
-                } else {
-                    mostrarErro("Não foi possível obter o ID Token do Google.")
-                }
-            } catch (e: ApiException) {
-                mostrarErro("Erro na autenticação do Google (Código ${e.statusCode}).")
-            }
-        } else {
-            mostrarCarregando(false)
-        }
-    }
-
-    // 2. Função para disparar a tela de seleção de contas do Google
-    private fun dispararLoginGoogle(googleSignInClient: GoogleSignInClient) {
-        mostrarCarregando(true)
-        val signInIntent = googleSignInClient.signInIntent
-        googleSignInLauncher.launch(signInIntent)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login)
+        binding = ActivityLoginBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         tokenManager = TokenManager(this)
-        firebaseAuth = FirebaseAuth.getInstance()
         credentialManager = CredentialManager.create(this)
 
-        etEmail = findViewById(R.id.etEmail)
-        etSenha = findViewById(R.id.etSenha)
-        btnEntrar = findViewById(R.id.btnEntrar)
-        btnEntrarComGoogle = findViewById(R.id.btnEntrarComGoogle)
-        progressBar = findViewById(R.id.progressBar)
-        tvErro = findViewById(R.id.tvErro)
-
-        // Se já tem token salvo, pula direto pra listagem
+        // Se já tem token salvo e ainda válido, pula direto pra listagem
         if (tokenManager.isLoggedIn()) {
             irParaListaChamados()
             return
         }
 
-        btnEntrar.setOnClickListener {
+        // Aberta pelo AuthInterceptor porque o token do servidor expirou
+        if (intent.getBooleanExtra(EXTRA_SESSAO_EXPIRADA, false)) {
+            mostrarErro("Sua sessão expirou. Faça login novamente.")
+        }
+
+        binding.btnEntrar.setOnClickListener {
             realizarLogin()
         }
 
-        btnEntrarComGoogle.setOnClickListener {
+        binding.btnEntrarComGoogle.setOnClickListener {
             limparErro()
             iniciarLoginComGoogle()
         }
     }
 
     private fun realizarLogin() {
-        val email = etEmail.text.toString().trim()
-        val senha = etSenha.text.toString()
+        val email = binding.etEmail.text.toString().trim()
+        val senha = binding.etSenha.text.toString()
 
         if (email.isEmpty() || senha.isEmpty()) {
             mostrarErro("Preencha e-mail e senha.")
@@ -132,10 +86,12 @@ class LoginActivity : AppCompatActivity() {
                     tokenManager.saveToken(response.body()!!.token)
                     irParaListaChamados()
                 } else {
-                    mostrarErro("E-mail ou senha inválidos.")
+                    val erroMsg = extrairMensagemErro(response.errorBody()?.string())
+                        ?: "E-mail ou senha inválidos."
+                    mostrarErro(erroMsg)
                 }
             } catch (e: Exception) {
-                mostrarErro("Não foi possível conectar ao servidor. Verifique se o backend está rodando.")
+                mostrarErro("Não foi possível conectar ao servidor (${e.localizedMessage ?: "Erro de rede"}). Verifique se o backend está rodando.")
             } finally {
                 mostrarCarregando(false)
             }
@@ -144,9 +100,12 @@ class LoginActivity : AppCompatActivity() {
 
     /**
      * Etapa 3 do roteiro: dispara a requisição de credencial via Credential Manager.
-     * O serverClientId precisa ser o Client ID do tipo WEB (não o Android), o mesmo
-     * exigido pelo GoogleAuthProvider mais adiante — por isso ele vem do BuildConfig,
+     * O serverClientId precisa ser o Client ID do tipo WEB (não o Android): ele vira o
+     * campo "aud" do idToken, e o backend só aceita o token se esse "aud" for igual ao
+     * app.google.web-client-id configurado no Spring Boot. O valor vem do BuildConfig,
      * carregado a partir de local.properties (nunca commitado no repositório).
+     * O app é identificado pelo Android Client ID (package + SHA-1) cadastrado no
+     * mesmo projeto do Google Cloud.
      */
     private fun iniciarLoginComGoogle() {
         val googleIdOption = GetGoogleIdOption.Builder()
@@ -194,7 +153,7 @@ class LoginActivity : AppCompatActivity() {
         ) {
             try {
                 val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
-                autenticarNoFirebase(googleIdTokenCredential.idToken)
+                autenticarNoBackend(googleIdTokenCredential.idToken)
             } catch (e: GoogleIdTokenParsingException) {
                 mostrarCarregando(false)
                 mostrarErro("Token do Google em formato inesperado.")
@@ -206,74 +165,67 @@ class LoginActivity : AppCompatActivity() {
     }
 
     /**
-     * Passo intermediário do login social: troca a credencial do Google por uma
-     * sessão do Firebase. O backend não valida o token do Google diretamente —
-     * ele valida um token do Firebase (via Firebase Admin SDK).
+     * Envia o idToken do Google direto para o backend (POST /api/v1/auth/google).
+     * O backend valida o token com o GoogleIdTokenVerifier (assinatura do Google,
+     * expiração e audiência == Web Client ID), busca o usuário pelo e-mail e devolve
+     * o JWT da própria aplicação — esse é o token salvo e usado nas demais requisições.
      */
-    private fun autenticarNoFirebase(googleIdToken: String) {
-        val credential = GoogleAuthProvider.getCredential(googleIdToken, null)
-
-        firebaseAuth.signInWithCredential(credential)
-            .addOnSuccessListener { authResult ->
-                authResult.user?.getIdToken(false)
-                    ?.addOnSuccessListener { tokenResult ->
-                        val firebaseIdToken = tokenResult.token
-                        if (firebaseIdToken != null) {
-                            autenticarNoBackend(firebaseIdToken)
-                        } else {
-                            mostrarCarregando(false)
-                            mostrarErro("Não foi possível obter o token do Firebase.")
-                        }
-                    }
-                    ?.addOnFailureListener {
-                        mostrarCarregando(false)
-                        mostrarErro("Falha ao obter token do Firebase: ${it.message}")
-                    }
-            }
-            .addOnFailureListener {
-                mostrarCarregando(false)
-                mostrarErro("Falha ao autenticar no Firebase: ${it.message}")
-            }
-    }
-
-    /** Envia o ID Token do Firebase para o backend e recebe o JWT da aplicação. */
-    private fun autenticarNoBackend(firebaseIdToken: String) {
+    private fun autenticarNoBackend(googleIdToken: String) {
         lifecycleScope.launch {
             try {
                 val api = RetrofitClient.getApiService(this@LoginActivity)
-                val response = api.loginComFirebase(TokenRequestDTO(token = firebaseIdToken))
+                val response = api.loginComGoogle(GoogleTokenRequestDTO(idToken = googleIdToken))
 
                 if (response.isSuccessful && response.body() != null) {
                     tokenManager.saveToken(response.body()!!.token)
                     irParaListaChamados()
+                } else if (response.code() == 401) {
+                    // O backend devolve { "erro": "..." } explicando o motivo (token inválido, etc.)
+                    mostrarErro(extrairMensagemErro(response.errorBody()?.string())
+                        ?: "Login com Google recusado pelo servidor.")
                 } else {
                     mostrarErro("Backend recusou o login com Google (erro ${response.code()}).")
                 }
             } catch (e: Exception) {
-                mostrarErro("Não foi possível conectar ao servidor. Verifique se o backend está rodando.")
+                mostrarErro("Não foi possível conectar ao servidor (${e.localizedMessage ?: "Erro de rede"}). Verifique se o backend está rodando.")
             } finally {
                 mostrarCarregando(false)
             }
         }
     }
 
+    /** Lê o campo "erro" do JSON de erro do backend (GlobalExceptionHandler). */
+    private fun extrairMensagemErro(corpo: String?): String? {
+        if (corpo.isNullOrBlank()) return null
+        return try {
+            JSONObject(corpo).optString("erro").ifBlank { null }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     private fun irParaListaChamados() {
+        AuthInterceptor.novaSessaoIniciada()
         startActivity(Intent(this, ListaChamadosActivity::class.java))
         finish()
     }
 
     private fun mostrarCarregando(carregando: Boolean) {
-        progressBar.visibility = if (carregando) android.view.View.VISIBLE else android.view.View.GONE
-        btnEntrar.isEnabled = !carregando
-        btnEntrarComGoogle.isEnabled = !carregando
+        binding.progressBar.visibility = if (carregando) android.view.View.VISIBLE else android.view.View.GONE
+        binding.btnEntrar.isEnabled = !carregando
+        binding.btnEntrarComGoogle.isEnabled = !carregando
     }
 
     private fun mostrarErro(mensagem: String) {
-        tvErro.text = mensagem
-        tvErro.visibility = android.view.View.VISIBLE
+        binding.tvErro.text = mensagem
+        binding.tvErro.visibility = android.view.View.VISIBLE
     }
 
     private fun limparErro() {
-        tvErro.visibility = android.view.View.GONE
+        binding.tvErro.visibility = android.view.View.GONE
+    }
+
+    companion object {
+        const val EXTRA_SESSAO_EXPIRADA = "EXTRA_SESSAO_EXPIRADA"
     }
 }

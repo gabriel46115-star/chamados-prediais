@@ -16,13 +16,19 @@ interface ApiService {
     @POST("api/v1/auth/register")
     suspend fun register(@Body request: RegisterRequestDTO): Response<Unit>
 
-    @POST("api/v1/users/auth/firebase")
-    suspend fun loginComFirebase(@Body request: TokenRequestDTO): Response<TokenResponseDTO>
+    // Login com Google: envia o idToken do Google e recebe o JWT do servidor
+    @POST("api/v1/auth/google")
+    suspend fun loginComGoogle(@Body request: GoogleTokenRequestDTO): Response<TokenResponseDTO>
 
     // ---- Users ----
 
     @GET("api/v1/users/me")
     suspend fun getMe(): Response<UserMeDTO>
+
+    // ---- Tipos de chamado (cadastrados no banco; leitura liberada a qualquer usuário logado) ----
+
+    @GET("api/v1/admin/tipos")
+    suspend fun listarTipos(): Response<List<TipoChamadoDTO>>
 
     // ---- Solicitacao / Chamados ----
 
@@ -37,7 +43,9 @@ interface ApiService {
         @Query("usuarioSolicitanteId") usuarioSolicitanteId: String? = null,
         @Query("tecnicoResponsavelId") tecnicoResponsavelId: String? = null,
         @Query("page") page: Int = 0,
-        @Query("size") size: Int = 10
+        @Query("size") size: Int = 10,
+        // Mais recentes primeiro (o padrão do backend é createdAt crescente)
+        @Query("sort") sort: String = "createdAt,desc"
     ): Response<PageResponse<SolicitacaoResponseDTO>>
 
     @GET("api/v1/solicitacoes/{id}")

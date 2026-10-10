@@ -10,9 +10,11 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
 
-    // 10.0.2.2 é o endereço que o EMULADOR usa para enxergar o "localhost" da máquina host.
-    // Se um dia testar em celular físico na mesma rede Wi-Fi, troque pelo IP local do PC
-    // (ex: "http://192.168.0.10:8080/") e libere a porta 8080 no firewall.
+    // Usa "localhost" junto com o túnel do adb: antes de rodar o app, execute
+    //     adb reverse tcp:8080 tcp:8080
+    // (repetir sempre que o emulador ou o celular reiniciar). Assim a porta 8080 do aparelho
+    // aponta para o backend na máquina host, sem mexer em firewall e sem exceção de tráfego
+    // HTTP no manifest. Funciona tanto no emulador quanto em celular físico via USB.
     private const val BASE_URL = "http://localhost:8080/"
 
     private var retrofit: Retrofit? = null
@@ -26,7 +28,7 @@ object RetrofitClient {
             }
 
             val okHttpClient = OkHttpClient.Builder()
-                .addInterceptor(AuthInterceptor(tokenManager))
+                .addInterceptor(AuthInterceptor(context, tokenManager))
                 .addInterceptor(logging)
                 .connectTimeout(15, TimeUnit.SECONDS)
                 .readTimeout(15, TimeUnit.SECONDS)

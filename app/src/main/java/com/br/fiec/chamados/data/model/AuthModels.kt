@@ -15,15 +15,15 @@ data class RegisterRequestDTO(
 )
 
 // Espelha TokenResponseDTO do backend — devolvido tanto pelo login normal
-// quanto pelo login via Firebase/Google
+// quanto pelo login com Google
 data class TokenResponseDTO(
     val token: String
 )
 
-// Espelha TokenRequestDTO do backend (features.user.model.dto) — usado no
-// POST /api/v1/users/auth/firebase, carregando o ID Token do Firebase
-data class TokenRequestDTO(
-    val token: String
+// Espelha GoogleTokenRequestDTO do backend (features.auth.models.dto) — usado no
+// POST /api/v1/auth/google, carregando o idToken emitido pelo Google
+data class GoogleTokenRequestDTO(
+    val idToken: String
 )
 
 // Espelha UserMeDTO do backend (GET /api/v1/users/me)

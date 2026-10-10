@@ -16,10 +16,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.br.fiec.chamados.data.TokenManager
 import com.br.fiec.chamados.data.network.RetrofitClient
 import com.br.fiec.chamados.databinding.ActivityListaChamadosBinding
-import com.br.fiec.chamados.ui.login.LoginActivity
 import kotlinx.coroutines.launch
 
 class ListaChamadosActivity : AppCompatActivity() {
@@ -134,9 +132,9 @@ class ListaChamadosActivity : AppCompatActivity() {
                         binding.tvVazioOuErro.visibility = View.GONE
                     }
                 } else if (response.code() == 401 || response.code() == 403) {
-                    TokenManager(this@ListaChamadosActivity).clearToken()
-                    startActivity(Intent(this@ListaChamadosActivity, LoginActivity::class.java))
-                    finish()
+                    // Sessão expirada é tratada pelo AuthInterceptor (volta ao login sozinho);
+                    // se chegou aqui com token válido, é falta de permissão.
+                    mostrarMensagem("Você não tem permissão para ver estes chamados.")
                 } else {
                     mostrarMensagem("Não foi possível carregar os chamados (erro ${response.code()}).")
                 }
