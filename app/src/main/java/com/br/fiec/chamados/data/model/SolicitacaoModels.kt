@@ -101,3 +101,28 @@ data class PageResponse<T>(
     val size: Int,
     val last: Boolean
 )
+
+// Espelha ComentarioRequestDTO do backend (POST /solicitacoes/{id}/comentarios)
+data class ComentarioRequestDTO(
+    val texto: String
+)
+
+// Espelha ComentarioResponseDTO do backend
+data class ComentarioResponseDTO(
+    val id: String,
+    val texto: String,
+    val autorId: String?,
+    val autorNome: String?,
+    val criadoEm: String?
+)
+
+// Espelha MovimentacaoResponseDTO do backend (GET /solicitacoes/{id}/historico).
+// Movimentações automáticas (ex: SLA estourado) não têm autor.
+data class MovimentacaoResponseDTO(
+    val id: String,
+    val titulo: String,
+    val descricao: String?,
+    val autorId: String?,
+    val autorNome: String?,
+    val criadoEm: String?
+)

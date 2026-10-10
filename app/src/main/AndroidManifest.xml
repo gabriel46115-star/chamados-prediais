@@ -55,7 +55,8 @@
         <activity
             android:name="com.br.fiec.chamados.ui.chamados.DetalheChamadoActivity"
             android:exported="false"
-            android:label="Detalhes do Chamado" />
+            android:label="Detalhes do Chamado"
+            android:windowSoftInputMode="adjustResize" />
 
     </application>
 

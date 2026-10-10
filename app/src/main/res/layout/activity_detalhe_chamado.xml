@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp">
@@ -10,128 +11,242 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true" />
 
-    <ScrollView
+    <LinearLayout
         android:id="@+id/contentLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:orientation="vertical"
         android:visibility="gone">
 
-        <LinearLayout
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            app:tabMode="fixed"
+            app:tabGravity="fill">
 
-            <TextView
-                android:id="@+id/tvTituloTipo"
+            <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="22sp"
-                android:textStyle="bold" />
+                android:text="Detalhes" />
 
-            <TextView
-                android:id="@+id/tvStatus"
+            <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#0288D1"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
+                android:text="Comentários" />
 
-            <TextView
-                android:id="@+id/tvPrioridade"
+            <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp" />
+                android:text="Histórico" />
+        </com.google.android.material.tabs.TabLayout>
 
-            <View
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="12dp">
+
+            <!-- ===== Aba Detalhes ===== -->
+            <ScrollView
+                android:id="@+id/abaDetalhes"
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#DDDDDD"
-                android:layout_marginBottom="16dp" />
+                android:layout_height="match_parent">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Localização:"
-                android:textStyle="bold" />
-            <TextView
-                android:id="@+id/tvLocalizacao"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Patrimônio:"
-                android:textStyle="bold" />
-            <TextView
-                android:id="@+id/tvPatrimonio"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp" />
+                    <TextView
+                        android:id="@+id/tvTituloTipo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Solicitante:"
-                android:textStyle="bold" />
-            <TextView
-                android:id="@+id/tvSolicitante"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp" />
+                    <TextView
+                        android:id="@+id/tvStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="#0288D1"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Técnico Responsável:"
-                android:textStyle="bold" />
-            <TextView
-                android:id="@+id/tvTecnico"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp" />
+                    <TextView
+                        android:id="@+id/tvPrioridade"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Data de Abertura:"
-                android:textStyle="bold" />
-            <TextView
-                android:id="@+id/tvDataAbertura"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp" />
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#DDDDDD"
+                        android:layout_marginBottom="16dp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Descrição:"
-                android:textStyle="bold" />
-            <TextView
-                android:id="@+id/tvDescricao"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Localização:"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/tvLocalizacao"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Anexos:"
-                android:textStyle="bold" />
-            <TextView
-                android:id="@+id/tvAnexosInfo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Patrimônio:"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/tvPatrimonio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp" />
 
-            <Button
-                android:id="@+id/btnVoltar"
-                style="?attr/borderlessButtonStyle"
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Solicitante:"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/tvSolicitante"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Técnico Responsável:"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/tvTecnico"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Data de Abertura:"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/tvDataAbertura"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Descrição:"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/tvDescricao"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Anexos:"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/tvAnexosInfo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="24dp" />
+
+                    <Button
+                        android:id="@+id/btnVoltar"
+                        style="?attr/borderlessButtonStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Voltar" />
+
+                </LinearLayout>
+            </ScrollView>
+
+            <!-- ===== Aba Comentários ===== -->
+            <LinearLayout
+                android:id="@+id/abaComentarios"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Voltar" />
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:visibility="gone">
 
-        </LinearLayout>
-    </ScrollView>
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvComentarios"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                    <TextView
+                        android:id="@+id/tvComentariosVazio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:textColor="#757575"
+                        android:visibility="gone" />
+                </FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingTop="8dp">
+
+                    <EditText
+                        android:id="@+id/etComentario"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="Escreva um comentário"
+                        android:inputType="textCapSentences|textMultiLine"
+                        android:maxLines="4"
+                        android:imeOptions="actionSend" />
+
+                    <Button
+                        android:id="@+id/btnEnviarComentario"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Enviar" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- ===== Aba Histórico ===== -->
+            <FrameLayout
+                android:id="@+id/abaHistorico"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvHistorico"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <TextView
+                    android:id="@+id/tvHistoricoVazio"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:textColor="#757575"
+                    android:visibility="gone" />
+            </FrameLayout>
+        </FrameLayout>
+    </LinearLayout>
 </RelativeLayout>
