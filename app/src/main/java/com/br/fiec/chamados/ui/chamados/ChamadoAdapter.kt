@@ -1,7 +1,10 @@
 package com.br.fiec.chamados.ui.chamados
 
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.Typeface
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.br.fiec.chamados.data.model.SolicitacaoResponseDTO
@@ -23,12 +26,20 @@ class ChamadoAdapter(
     override fun onBindViewHolder(holder: ChamadoViewHolder, position: Int) {
         val chamado = chamados[position]
         holder.binding.tvTitulo.text = chamado.titulo
-        holder.binding.tvStatus.text = if (chamado.urgente == true) {
+        // Chamados urgentes (marcados manualmente ou por SLA estourado) ficam em vermelho
+        val urgente = chamado.urgente == true
+        holder.binding.tvStatus.text = if (urgente) {
             "${chamado.status.rotuloOuPadrao()} · URGENTE"
         } else {
             chamado.status.rotuloOuPadrao()
         }
+        holder.binding.tvStatus.setTextColor(if (urgente) COR_URGENTE else COR_STATUS)
+        holder.binding.tvStatus.setTypeface(null, if (urgente) Typeface.BOLD else Typeface.NORMAL)
         holder.binding.tvTipo.text = chamado.tipoNome ?: "Tipo não informado"
+
+        val tecnico = chamado.tecnicoResponsavelNome
+        holder.binding.tvResponsavel.text = "Técnico: $tecnico"
+        holder.binding.tvResponsavel.visibility = if (tecnico.isNullOrBlank()) View.GONE else View.VISIBLE
 
         holder.itemView.setOnClickListener {
             if (onItemClick != null) {
@@ -49,5 +60,10 @@ class ChamadoAdapter(
         chamados.clear()
         chamados.addAll(novosChamados)
         notifyDataSetChanged()
+    }
+
+    companion object {
+        private val COR_URGENTE = Color.parseColor("#C62828")
+        private val COR_STATUS = Color.parseColor("#1565C0")
     }
 }

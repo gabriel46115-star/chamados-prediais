@@ -26,8 +26,16 @@ data class GoogleTokenRequestDTO(
     val idToken: String
 )
 
-// Espelha UserMeDTO do backend (GET /api/v1/users/me)
+// Espelha UserMeDTO do backend (GET /api/v1/users/me).
+// role: ADMIN_ROLE, SUPERVISOR_ROLE, FUNCIONARIO_ROLE ou USER_ROLE
 data class UserMeDTO(
+    val id: String?,
     val email: String,
-    val nome: String
+    val nome: String,
+    val role: String?
+)
+
+// Espelha FcmTokenRequestDTO do backend (PATCH /api/v1/users/me/fcm-token)
+data class FcmTokenRequestDTO(
+    val fcmToken: String
 )

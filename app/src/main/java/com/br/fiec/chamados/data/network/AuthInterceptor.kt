@@ -2,6 +2,7 @@ package com.br.fiec.chamados.data.network
 
 import android.content.Context
 import android.content.Intent
+import com.br.fiec.chamados.data.SessaoUsuario
 import com.br.fiec.chamados.data.TokenManager
 import com.br.fiec.chamados.ui.login.LoginActivity
 import okhttp3.Interceptor
@@ -54,6 +55,7 @@ class AuthInterceptor(
         if (!sessaoEncerrada.compareAndSet(false, true)) return
 
         tokenManager.clearToken()
+        SessaoUsuario.limpar()
         val intent = Intent(appContext, LoginActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             putExtra(LoginActivity.EXTRA_SESSAO_EXPIRADA, true)

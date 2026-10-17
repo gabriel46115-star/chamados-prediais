@@ -25,6 +25,10 @@ interface ApiService {
     @GET("api/v1/users/me")
     suspend fun getMe(): Response<UserMeDTO>
 
+    // Vincula o token FCM deste aparelho ao usuário logado (para receber notificações push)
+    @PATCH("api/v1/users/me/fcm-token")
+    suspend fun atualizarFcmToken(@Body request: FcmTokenRequestDTO): Response<Unit>
+
     // ---- Tipos de chamado (cadastrados no banco; leitura liberada a qualquer usuário logado) ----
 
     @GET("api/v1/admin/tipos")
@@ -81,22 +85,13 @@ interface ApiService {
         @Part anexos: List<MultipartBody.Part>? = null
     ): Response<SolicitacaoResponseDTO>
 
-    // Admin / Gestão de Chamados
+    // Ação do funcionário: alterar o status do chamado
     @PATCH("api/v1/solicitacoes/{id}/status")
     suspend fun atualizarStatus(
         @Path("id") id: String,
         @Query("status") status: StatusSolicitacao
     ): Response<SolicitacaoResponseDTO>
 
-    @PATCH("api/v1/solicitacoes/{id}/prioridade")
-    suspend fun atualizarPrioridade(
-        @Path("id") id: String,
-        @Query("prioridade") prioridade: PrioridadeSolicitacao
-    ): Response<SolicitacaoResponseDTO>
-
-    @PATCH("api/v1/solicitacoes/{id}/tecnico")
-    suspend fun atribuirTecnico(
-        @Path("id") id: String,
-        @Query("tecnicoId") tecnicoId: String
-    ): Response<SolicitacaoResponseDTO>
+    // Prioridade, atribuição de técnico, rejeição e cancelamento ficam na aplicação para
+    // computador (escopo do app: ver seção 2.8 do relatório).
 }

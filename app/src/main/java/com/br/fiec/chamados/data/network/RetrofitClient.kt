@@ -1,6 +1,7 @@
 package com.br.fiec.chamados.data.network
 
 import android.content.Context
+import com.br.fiec.chamados.BuildConfig
 import com.br.fiec.chamados.data.TokenManager
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -10,12 +11,19 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
 
-    // Usa "localhost" junto com o túnel do adb: antes de rodar o app, execute
-    //     adb reverse tcp:8080 tcp:8080
-    // (repetir sempre que o emulador ou o celular reiniciar). Assim a porta 8080 do aparelho
-    // aponta para o backend na máquina host, sem mexer em firewall e sem exceção de tráfego
-    // HTTP no manifest. Funciona tanto no emulador quanto em celular físico via USB.
-    private const val BASE_URL = "http://localhost:8080/"
+    // O endereço vem do local.properties (chave API_BASE_URL), via BuildConfig:
+    //   - em casa:  API_BASE_URL=http://localhost:8080/   + adb reverse tcp:8080 tcp:8080
+    //   - servidor: API_BASE_URL=http://10.5.36.6:8080/  (celular na mesma rede)
+    // Sem a chave, o padrão é localhost. Depois de trocar, fazer Rebuild.
+    // O HTTP sem criptografia só é liberado para esses endereços (res/xml/network_security_config.xml).
+    val BASE_URL: String = BuildConfig.API_BASE_URL
+
+    /**
+     * O backend devolve a URL dos anexos relativa (ex: "/uploads/<chamado>/<arquivo>.jpg").
+     * Aqui ela é completada com o endereço do servidor para poder ser carregada.
+     */
+    fun urlCompleta(caminho: String): String =
+        if (caminho.startsWith("http")) caminho else BASE_URL.trimEnd('/') + "/" + caminho.trimStart('/')
 
     private var retrofit: Retrofit? = null
 

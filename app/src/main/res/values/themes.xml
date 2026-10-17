@@ -1,9 +1,136 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.ChamadosPrediais" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/purple_500</item>
-        <item name="colorPrimaryDark">@color/purple_700</item>
-        <item name="colorAccent">@color/teal_200</item>
+
+    <!--
+        Tema do app, alinhado à identidade visual do sistema web:
+        laranja da marca, fundo creme, cards brancos, títulos com serifa.
+        Fontes do próprio Android (sem arquivos extras): "serif" (Noto Serif) nos títulos
+        e "sans-serif" (Roboto) no restante.
+    -->
+    <style name="Theme.ChamadosPrediais" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/laranja</item>
+        <item name="colorOnPrimary">@color/texto_claro</item>
+        <item name="colorPrimaryContainer">@color/laranja_claro</item>
+        <item name="colorOnPrimaryContainer">@color/laranja_escuro</item>
+        <item name="colorSecondary">@color/laranja_escuro</item>
+        <item name="colorOnSecondary">@color/texto_claro</item>
+        <item name="colorSurface">@color/superficie</item>
+        <item name="colorOnSurface">@color/texto</item>
+        <item name="colorOnSurfaceVariant">@color/texto_secundario</item>
+        <item name="colorOutline">@color/borda</item>
+        <item name="colorError">@color/vermelho_urgente</item>
+        <item name="android:colorBackground">@color/fundo_creme</item>
+        <item name="android:windowBackground">@color/fundo_creme</item>
+        <item name="android:textColorPrimary">@color/texto</item>
+        <item name="android:textColorSecondary">@color/texto_secundario</item>
+
+        <!-- Barras do sistema transparentes com ícones escuros (telas claras) -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+
+        <!-- Abertura do app (Android 12+): logo sobre o fundo escuro, como a tela inicial do site -->
+        <item name="android:windowSplashScreenBackground">@color/fundo_escuro</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_logo</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/marca_laranja</item>
+
+        <!-- Componentes padrão -->
+        <item name="materialButtonStyle">@style/Widget.Chamados.Botao.Primario</item>
+        <item name="textInputStyle">@style/Widget.Chamados.Campo</item>
+        <item name="materialCardViewStyle">@style/Widget.Chamados.Card</item>
+    </style>
+
+    <!-- ===================== Textos ===================== -->
+
+    <!-- Títulos grandes com serifa ("Bem-vindo de volta", "Olá, Gabriel") -->
+    <style name="TextAppearance.Chamados.Titulo" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="fontFamily">serif</item>
+        <item name="android:fontFamily">serif</item>
+        <item name="android:textSize">30sp</item>
+        <item name="android:textColor">@color/texto</item>
+        <item name="android:lineSpacingMultiplier">1.05</item>
+    </style>
+
+    <!-- Títulos de seção com serifa -->
+    <style name="TextAppearance.Chamados.TituloSecao" parent="TextAppearance.Material3.TitleLarge">
+        <item name="fontFamily">serif</item>
+        <item name="android:fontFamily">serif</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/texto</item>
+    </style>
+
+    <!-- Rótulo pequeno em laranja e caixa alta ("ACESSO", "DETALHES DO PROBLEMA") -->
+    <style name="TextAppearance.Chamados.Rotulo" parent="TextAppearance.Material3.LabelMedium">
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:letterSpacing">0.12</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/laranja</item>
+    </style>
+
+    <style name="TextAppearance.Chamados.Corpo" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">@color/texto_secundario</item>
+    </style>
+
+    <style name="TextAppearance.Chamados.Pequeno" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/texto_secundario</item>
+    </style>
+
+    <!-- ===================== Componentes ===================== -->
+
+    <!-- Botão principal laranja ("Entrar", "Enviar chamado") -->
+    <style name="Widget.Chamados.Botao.Primario" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/laranja</item>
+        <item name="android:textColor">@color/texto_claro</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="cornerRadius">14dp</item>
+        <item name="android:minHeight">54dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+    </style>
+
+    <!-- Botão branco com borda ("Entrar com Google", "Cancelar") -->
+    <style name="Widget.Chamados.Botao.Secundario" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="backgroundTint">@color/superficie</item>
+        <item name="strokeColor">@color/borda</item>
+        <item name="android:textColor">@color/texto</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="cornerRadius">14dp</item>
+        <item name="android:minHeight">54dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+    </style>
+
+    <!-- Botão só de texto ("Sair", "Voltar") -->
+    <style name="Widget.Chamados.Botao.Texto" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textColor">@color/laranja_escuro</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <!-- Campo de texto branco com cantos arredondados -->
+    <style name="Widget.Chamados.Campo" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxBackgroundColor">@color/superficie</item>
+        <item name="boxStrokeColor">@color/laranja</item>
+        <item name="hintTextColor">@color/laranja_escuro</item>
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+    </style>
+
+    <!-- Card branco com borda suave -->
+    <style name="Widget.Chamados.Card" parent="Widget.Material3.CardView.Outlined">
+        <item name="cardBackgroundColor">@color/superficie</item>
+        <item name="strokeColor">@color/borda</item>
+        <item name="cardCornerRadius">16dp</item>
     </style>
 </resources>

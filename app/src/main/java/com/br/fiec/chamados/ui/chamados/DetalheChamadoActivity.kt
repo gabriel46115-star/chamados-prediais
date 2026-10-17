@@ -6,17 +6,20 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.br.fiec.chamados.data.SessaoUsuario
 import com.br.fiec.chamados.data.model.ComentarioRequestDTO
+import com.br.fiec.chamados.data.model.StatusSolicitacao
 import com.br.fiec.chamados.data.model.SolicitacaoResponseDTO
 import com.br.fiec.chamados.data.model.rotuloOuPadrao
 import com.br.fiec.chamados.data.network.RetrofitClient
 import com.br.fiec.chamados.databinding.ActivityDetalheChamadoBinding
+import com.br.fiec.chamados.ui.util.EspacamentoBarras
 import com.br.fiec.chamados.ui.util.FormatoData
+import com.br.fiec.chamados.ui.util.VisualizadorImagem
 import com.google.android.material.tabs.TabLayout
 import kotlinx.coroutines.launch
 
@@ -25,14 +28,21 @@ import kotlinx.coroutines.launch
  * - Detalhes: dados gerais (GET /solicitacoes/{id})
  * - Comentários: conversa sobre o chamado (GET/POST /solicitacoes/{id}/comentarios)
  * - Histórico: linha do tempo de movimentações (GET /solicitacoes/{id}/historico)
+ *
+ * Para o funcionário há também a ação "Alterar status" (PATCH /solicitacoes/{id}/status).
+ * O funcionário não atribui chamados: isso é feito na aplicação para computador.
  */
 class DetalheChamadoActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityDetalheChamadoBinding
     private var chamadoId: String? = null
+    private var chamadoAtual: SolicitacaoResponseDTO? = null
 
     private val comentarioAdapter = ComentarioAdapter()
     private val movimentacaoAdapter = MovimentacaoAdapter()
+
+    // Fotos anexadas ao chamado (toque abre em tela cheia)
+    private val anexoAdapter = MiniaturaAdapter { imagem -> VisualizadorImagem.abrir(this, imagem) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +65,7 @@ class DetalheChamadoActivity : AppCompatActivity() {
         carregarDetalhesChamado()
         carregarComentarios()
         carregarHistorico()
+        configurarAcoesDoFuncionario()
     }
 
     /**
@@ -64,19 +75,7 @@ class DetalheChamadoActivity : AppCompatActivity() {
      * acima do teclado.
      */
     private fun aplicarEspacamentoDasBarras() {
-        val paddingOriginal = binding.root.paddingTop
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
-            val barras = insets.getInsets(
-                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime()
-            )
-            view.setPadding(
-                paddingOriginal + barras.left,
-                paddingOriginal + barras.top,
-                paddingOriginal + barras.right,
-                paddingOriginal + barras.bottom
-            )
-            WindowInsetsCompat.CONSUMED
-        }
+        EspacamentoBarras.aplicar(binding.root, incluirTeclado = true)
     }
 
     private fun configurarAbas() {
@@ -106,11 +105,18 @@ class DetalheChamadoActivity : AppCompatActivity() {
 
         binding.rvHistorico.layoutManager = LinearLayoutManager(this)
         binding.rvHistorico.adapter = movimentacaoAdapter
+
+        binding.rvAnexos.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        binding.rvAnexos.adapter = anexoAdapter
     }
 
     private fun setupListeners() {
         binding.btnVoltar.setOnClickListener {
             finish()
+        }
+
+        binding.btnAlterarStatus.setOnClickListener {
+            mostrarOpcoesDeStatus()
         }
 
         binding.btnEnviarComentario.setOnClickListener {
@@ -160,6 +166,7 @@ class DetalheChamadoActivity : AppCompatActivity() {
     }
 
     private fun exibirDadosChamado(chamado: SolicitacaoResponseDTO) {
+        chamadoAtual = chamado
         binding.apply {
             tvTituloTipo.text = listOfNotNull(chamado.tipoIcone, chamado.tipoNome)
                 .joinToString(" ")
@@ -179,12 +186,100 @@ class DetalheChamadoActivity : AppCompatActivity() {
             tvDescricao.text = chamado.descricao
             tvDataAbertura.text = FormatoData.formatar(chamado.dataAbertura)
 
-            // Exibição de anexos
-            val qtdAnexos = chamado.anexos?.size ?: 0
-            tvAnexosInfo.text = if (qtdAnexos > 0) {
-                "$qtdAnexos anexo(s) vinculado(s)"
+            // Exibição de anexos: miniaturas carregadas de <servidor>/uploads/...
+            val anexos = chamado.anexos.orEmpty()
+            tvAnexosInfo.text = if (anexos.isNotEmpty()) {
+                "${anexos.size} anexo(s) — toque para ampliar"
             } else {
                 "Nenhum anexo disponível"
+            }
+            anexoAdapter.atualizarLista(anexos.map { RetrofitClient.urlCompleta(it.url) })
+            rvAnexos.visibility = if (anexos.isNotEmpty()) View.VISIBLE else View.GONE
+        }
+    }
+
+    // ------------------------------------------------- Ações do funcionário
+
+    /**
+     * Mostra o botão "Alterar status" só para a equipe. O perfil normalmente já foi
+     * carregado pela lista; se o app foi aberto direto aqui, é consultado agora.
+     */
+    private fun configurarAcoesDoFuncionario() {
+        if (SessaoUsuario.usuario != null) {
+            binding.btnAlterarStatus.visibility = if (SessaoUsuario.ehEquipe) View.VISIBLE else View.GONE
+            return
+        }
+        lifecycleScope.launch {
+            try {
+                val response = RetrofitClient.getApiService(this@DetalheChamadoActivity).getMe()
+                if (response.isSuccessful) SessaoUsuario.usuario = response.body()
+            } catch (e: Exception) {
+                // Sem perfil: o botão fica oculto
+            }
+            binding.btnAlterarStatus.visibility = if (SessaoUsuario.ehEquipe) View.VISIBLE else View.GONE
+        }
+    }
+
+    private fun mostrarOpcoesDeStatus() {
+        val statusAtual = chamadoAtual?.status
+        val opcoes = STATUS_DO_FUNCIONARIO.filter { it != statusAtual }
+        val rotulos = opcoes.map { it.rotulo }.toTypedArray()
+
+        AlertDialog.Builder(this)
+            .setTitle("Alterar status")
+            .setItems(rotulos) { _, posicao -> confirmarAlteracaoDeStatus(opcoes[posicao]) }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun confirmarAlteracaoDeStatus(novoStatus: StatusSolicitacao) {
+        AlertDialog.Builder(this)
+            .setTitle("Confirmar alteração")
+            .setMessage("Alterar o status do chamado para \"${novoStatus.rotulo}\"?")
+            .setPositiveButton("Alterar") { _, _ -> alterarStatus(novoStatus) }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun alterarStatus(novoStatus: StatusSolicitacao) {
+        val id = chamadoId ?: return
+        binding.btnAlterarStatus.isEnabled = false
+
+        lifecycleScope.launch {
+            try {
+                val response = RetrofitClient.getApiService(this@DetalheChamadoActivity)
+                    .atualizarStatus(id, novoStatus)
+
+                if (response.isSuccessful && response.body() != null) {
+                    val atualizado = response.body()!!
+                    // Versões anteriores do backend devolviam esta resposta sem os anexos, o que
+                    // fazia as fotos sumirem da tela. Por segurança, mantém os anexos já exibidos.
+                    exibirDadosChamado(
+                        if (atualizado.anexos.isNullOrEmpty()) atualizado.copy(anexos = chamadoAtual?.anexos)
+                        else atualizado
+                    )
+                    // O backend registra "Status alterado" no histórico do chamado
+                    carregarHistorico()
+                    Toast.makeText(
+                        this@DetalheChamadoActivity,
+                        "Status alterado para \"${novoStatus.rotulo}\".",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        this@DetalheChamadoActivity,
+                        "Não foi possível alterar o status (erro ${response.code()}).",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@DetalheChamadoActivity,
+                    "Falha de conexão ao alterar o status.",
+                    Toast.LENGTH_LONG
+                ).show()
+            } finally {
+                binding.btnAlterarStatus.isEnabled = true
             }
         }
     }
@@ -322,5 +417,16 @@ class DetalheChamadoActivity : AppCompatActivity() {
         private const val ABA_DETALHES = 0
         private const val ABA_COMENTARIOS = 1
         private const val ABA_HISTORICO = 2
+
+        /**
+         * Status que o funcionário pode escolher no app. Rejeitar e cancelar são decisões
+         * de gestão (rejeitar exige motivo) e ficam na aplicação para computador.
+         */
+        private val STATUS_DO_FUNCIONARIO = listOf(
+            StatusSolicitacao.EM_ANDAMENTO,
+            StatusSolicitacao.AGUARDANDO_ASSISTENCIA_EXTERNA,
+            StatusSolicitacao.CONCLUIDO,
+            StatusSolicitacao.FINALIZADA
+        )
     }
 }

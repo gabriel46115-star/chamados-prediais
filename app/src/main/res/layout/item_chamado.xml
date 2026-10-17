@@ -42,4 +42,15 @@
 
     </LinearLayout>
 
+    <!-- Técnico responsável: permite à equipe ver com quem está cada chamado -->
+    <TextView
+        android:id="@+id/tvResponsavel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textSize="12sp"
+        android:textColor="#757575"
+        android:visibility="gone"
+        tools:text="Técnico: João Silva" />
+
 </LinearLayout>

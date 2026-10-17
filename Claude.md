@@ -46,7 +46,9 @@ app/src/main/java/com/br/fiec/chamados/
 - **Enums vindos da API devem ser anuláveis** nos DTOs (`status: StatusSolicitacao?`): o Gson atribui `null`
   a valores desconhecidos mesmo em campos não-nulos, o que causaria NullPointerException. Exibir com
   `rotuloOuPadrao()`.
-- Não manter `usesCleartextTraffic` no manifest (decisão do projeto). Em desenvolvimento usa-se `adb reverse`.
+- Não usar `usesCleartextTraffic` no manifest. HTTP é liberado só para `localhost` e `10.5.36.6` em
+  `res/xml/network_security_config.xml`. O endereço do backend vem de `API_BASE_URL` no `local.properties`
+  (padrão `http://localhost:8080/`).
 - Segredos fora do código: `WEB_CLIENT_ID` vem de `local.properties` → `BuildConfig.WEB_CLIENT_ID`.
   Nunca commitar `local.properties`.
 
@@ -91,14 +93,26 @@ estar cadastrado no Firebase.
    (`http://localhost:8080/swagger-ui.html`).
 4. Build: `./gradlew assembleDebug` — após mudar `local.properties`, fazer Rebuild (o valor entra no BuildConfig).
 
-## Pendências conhecidas (ordem sugerida)
+## Escopo do app (decisão do projeto)
 
-1. Testar ponta a ponta a adaptação à V4 e o login com Google (alinhar Web Client ID).
-2. Enviar o token FCM ao back-end após o login (falta endpoint no back-end para atualizar `fcmToken`).
-3. Abas de comentários e histórico na tela de detalhe.
-4. Tratar 401/403 de forma centralizada (hoje só a lista redireciona ao login).
-5. Painel Kanban do funcionário, painel do supervisor e área administrativa
-   (dependem de `/users/me` devolver `id` e `role`).
+O app é para uso rápido no dia a dia. O perfil é detectado sozinho após o login (GET /users/me,
+guardado em `SessaoUsuario`); ninguém escolhe papel. Há só **dois perfis no celular**:
+
+- **Usuário comum (USER_ROLE):** abre chamados, acompanha os próprios, comenta, vê fotos.
+- **Funcionário (FUNCIONARIO_ROLE; SUPERVISOR_ROLE e ADMIN_ROLE usam o mesmo painel no app):**
+  - vê: Abertos · Atribuídos a mim · Em andamento · Aguardando · Para fechar (CONCLUIDO) · Finalizados,
+    com o técnico responsável no card (assim vê também os chamados dos colegas);
+  - pode: **alterar status** (Em andamento, Aguardando assistência externa, Concluído, Finalizado),
+    comentar e ver as fotos;
+  - **não pode atribuir chamados** (nem a si mesmo), mudar prioridade, rejeitar ou cancelar.
+
+Fica **fora do app** (aplicação para computador): atribuição de técnico, prioridade/urgência,
+rejeição/cancelamento, painel do supervisor, indicadores e área administrativa (usuários, tipos,
+setores, locais, SLA, relatórios, auditoria). Não criar telas para isso no mobile.
+
+## Pendências conhecidas
+
+1. Testar a expiração de sessão (30 min) com o AuthInterceptor centralizado.
 
 ## Relatório do TCC
 

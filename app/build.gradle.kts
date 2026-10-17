@@ -33,6 +33,17 @@ android {
             "\"$webClientId\""
         )
 
+        // Endereço do backend. Em casa: http://localhost:8080/ (com adb reverse).
+        // Na rede da escola: API_BASE_URL=http://10.5.36.6:8080/ no local.properties.
+        var apiBaseUrl = localProperties.getProperty("API_BASE_URL", "http://localhost:8080/")
+            .replace("\"", "").trim()
+        if (!apiBaseUrl.endsWith("/")) apiBaseUrl += "/"
+        buildConfigField(
+            "String",
+            "API_BASE_URL",
+            "\"$apiBaseUrl\""
+        )
+
     }
 
     buildTypes {
@@ -85,6 +96,9 @@ dependencies {
 
     // AppCompat & Material
     implementation("androidx.appcompat:appcompat:1.7.0")
+
+    // Coil: carregamento de imagens (miniaturas dos anexos)
+    implementation("io.coil-kt:coil:2.7.0")
     implementation("com.google.android.material:material:1.12.0")
 
     // Firebase (BOM controla as versões dos módulos abaixo)

@@ -79,6 +79,15 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp" />
 
+                    <!-- Ação do funcionário (oculta para o usuário comum) -->
+                    <Button
+                        android:id="@+id/btnAlterarStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:text="Alterar status"
+                        android:visibility="gone" />
+
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
@@ -160,7 +169,14 @@
                         android:id="@+id/tvAnexosInfo"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="24dp" />
+                        android:layout_marginBottom="8dp" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvAnexos"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="24dp"
+                        android:visibility="gone" />
 
                     <Button
                         android:id="@+id/btnVoltar"

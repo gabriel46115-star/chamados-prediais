@@ -3,15 +3,19 @@ package com.br.fiec.chamados.ui.chamados
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.webkit.MimeTypeMap
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.br.fiec.chamados.data.model.CreateSolicitacaoRequestDTO
 import com.br.fiec.chamados.data.model.TipoChamadoDTO
 import com.br.fiec.chamados.data.network.RetrofitClient
 import com.br.fiec.chamados.databinding.ActivityNovoChamadoBinding
+import com.br.fiec.chamados.ui.util.EspacamentoBarras
+import com.br.fiec.chamados.ui.util.VisualizadorImagem
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -25,6 +29,9 @@ class NovoChamadoActivity : AppCompatActivity() {
     private lateinit var binding: ActivityNovoChamadoBinding
     private val listaUrisSelecionadas = mutableListOf<Uri>()
 
+    // Pré-visualização das imagens escolhidas (toque abre em tela cheia)
+    private val miniaturaAdapter = MiniaturaAdapter { imagem -> VisualizadorImagem.abrir(this, imagem) }
+
     // Só libera o envio depois que os tipos de chamado forem carregados da API
     private var tiposCarregados = false
 
@@ -36,6 +43,8 @@ class NovoChamadoActivity : AppCompatActivity() {
             listaUrisSelecionadas.clear()
             listaUrisSelecionadas.addAll(uris)
             binding.tvAnexosContador.text = "${listaUrisSelecionadas.size} imagem(ns) selecionada(s)"
+            miniaturaAdapter.atualizarLista(listaUrisSelecionadas)
+            binding.rvMiniaturas.visibility = View.VISIBLE
         }
     }
 
@@ -43,9 +52,13 @@ class NovoChamadoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityNovoChamadoBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        EspacamentoBarras.aplicar(binding.root, incluirTeclado = true)
 
         setupDropdown()
         setupListeners()
+
+        binding.rvMiniaturas.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        binding.rvMiniaturas.adapter = miniaturaAdapter
     }
 
     /**
@@ -165,8 +178,8 @@ class NovoChamadoActivity : AppCompatActivity() {
                 val dadosPart = jsonDados.toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
 
                 // 2. Converter Uris de imagens em MultipartBody.Part com a chave "anexos"
-                val anexosParts = listaUrisSelecionadas.mapNotNull { uri ->
-                    converterUriParaMultipart(uri, "anexos")
+                val anexosParts = listaUrisSelecionadas.mapIndexedNotNull { indice, uri ->
+                    converterUriParaMultipart(uri, "anexos", indice)
                 }
 
                 // 3. Chamada ao endpoint
@@ -191,14 +204,24 @@ class NovoChamadoActivity : AppCompatActivity() {
         }
     }
 
-    private fun converterUriParaMultipart(uri: Uri, paramName: String): MultipartBody.Part? {
+    /**
+     * Copia a imagem escolhida para o cache e monta a parte do multipart.
+     * - O tipo real (image/jpeg, image/png...) e a extensão vêm do próprio arquivo.
+     * - O índice no nome evita que duas imagens processadas no mesmo milissegundo
+     *   gerem o mesmo arquivo temporário e uma sobrescreva a outra.
+     */
+    private fun converterUriParaMultipart(uri: Uri, paramName: String, indice: Int): MultipartBody.Part? {
         return try {
+            val tipo = contentResolver.getType(uri) ?: "image/jpeg"
+            val extensao = MimeTypeMap.getSingleton().getExtensionFromMimeType(tipo) ?: "jpg"
+            val file = File(cacheDir, "foto_${System.currentTimeMillis()}_$indice.$extensao")
+
             val inputStream = contentResolver.openInputStream(uri) ?: return null
-            val file = File(cacheDir, "temp_upload_${System.currentTimeMillis()}.jpg")
-            file.outputStream().use { output ->
-                inputStream.copyTo(output)
+            inputStream.use { entrada ->
+                file.outputStream().use { saida -> entrada.copyTo(saida) }
             }
-            val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+
+            val requestFile = file.asRequestBody(tipo.toMediaTypeOrNull())
             MultipartBody.Part.createFormData(paramName, file.name, requestFile)
         } catch (e: Exception) {
             null

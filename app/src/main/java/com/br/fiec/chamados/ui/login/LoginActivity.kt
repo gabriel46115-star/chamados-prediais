@@ -16,9 +16,11 @@ import com.br.fiec.chamados.data.TokenManager
 import com.br.fiec.chamados.data.model.LoginRequestDTO
 import com.br.fiec.chamados.data.model.GoogleTokenRequestDTO
 import com.br.fiec.chamados.data.network.AuthInterceptor
+import com.br.fiec.chamados.data.network.FcmTokenSync
 import com.br.fiec.chamados.data.network.RetrofitClient
 import com.br.fiec.chamados.databinding.ActivityLoginBinding
 import com.br.fiec.chamados.ui.chamados.ListaChamadosActivity
+import com.br.fiec.chamados.ui.util.EspacamentoBarras
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
@@ -41,6 +43,7 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        EspacamentoBarras.aplicar(binding.root, incluirTeclado = true)
 
         tokenManager = TokenManager(this)
         credentialManager = CredentialManager.create(this)
@@ -206,7 +209,18 @@ class LoginActivity : AppCompatActivity() {
 
     private fun irParaListaChamados() {
         AuthInterceptor.novaSessaoIniciada()
-        startActivity(Intent(this, ListaChamadosActivity::class.java))
+        // Vincula este aparelho ao usuário no backend, para receber as notificações push
+        FcmTokenSync.sincronizar(this)
+
+        // CLEAR_TOP + SINGLE_TOP: se a lista já estiver aberta por trás, ela é reaproveitada
+        // (recebe o chamadoId em onNewIntent) em vez de abrir uma segunda cópia
+        val destino = Intent(this, ListaChamadosActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        }
+        // Com o app fechado, tocar na notificação abre esta tela (a de entrada) trazendo o
+        // "chamadoId" enviado pelo backend; ele é repassado para a lista abrir o chamado.
+        intent.getStringExtra(EXTRA_CHAMADO_ID)?.let { destino.putExtra(EXTRA_CHAMADO_ID, it) }
+        startActivity(destino)
         finish()
     }
 
@@ -227,5 +241,8 @@ class LoginActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_SESSAO_EXPIRADA = "EXTRA_SESSAO_EXPIRADA"
+
+        /** Chave do id do chamado no bloco "data" das notificações enviadas pelo backend. */
+        const val EXTRA_CHAMADO_ID = "chamadoId"
     }
 }

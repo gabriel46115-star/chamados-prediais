@@ -68,7 +68,14 @@
             android:textColor="#666666"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="4dp"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="8dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvMiniaturas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone" />
 
         <ProgressBar
             android:id="@+id/progressBar"

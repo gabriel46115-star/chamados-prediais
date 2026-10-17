@@ -1,5 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- ===== Identidade visual (mesma do sistema web "Gestão de Manutenção") ===== -->
+
+    <!-- Marca -->
+    <color name="marca_laranja">#E66F00</color>          <!-- logo / ícone -->
+    <color name="laranja">#E07200</color>                <!-- botões principais -->
+    <color name="laranja_escuro">#B85C00</color>         <!-- botão pressionado / textos de destaque -->
+    <color name="laranja_claro">#FCE9D6</color>          <!-- fundo de destaque suave -->
+
+    <!-- Superfícies -->
+    <color name="fundo_creme">#F6F2E9</color>            <!-- fundo das telas internas -->
+    <color name="fundo_login">#F1F4F9</color>            <!-- fundo da tela de login -->
+    <color name="fundo_escuro">#25201C</color>           <!-- tela de abertura -->
+    <color name="superficie">#FFFFFF</color>             <!-- cards -->
+    <color name="borda">#E6E1D8</color>
+    <color name="chip_fundo">#F1EEE8</color>             <!-- etiquetas de tipo/local -->
+
+    <!-- Texto -->
+    <color name="texto">#1C1A17</color>
+    <color name="texto_secundario">#6B6762</color>
+    <color name="texto_claro">#FFFFFF</color>
+
+    <!-- Status (fundo da etiqueta / texto da etiqueta) -->
+    <color name="status_aberto_fundo">#FAF5CB</color>
+    <color name="status_aberto_texto">#8A6D00</color>
+    <color name="status_andamento_fundo">#DCE9FC</color>
+    <color name="status_andamento_texto">#1E4FA3</color>
+    <color name="status_aguardando_fundo">#F5E8FC</color>
+    <color name="status_aguardando_texto">#7A2E9E</color>
+    <color name="status_concluido_fundo">#DDF3EA</color>
+    <color name="status_concluido_texto">#01734E</color>
+    <color name="status_finalizado_fundo">#ECEBE8</color>
+    <color name="status_finalizado_texto">#55524D</color>
+    <color name="status_rejeitado_fundo">#FDE4E4</color>
+    <color name="status_rejeitado_texto">#B42318</color>
+
+    <!-- Ações e alertas -->
+    <color name="verde_acao">#019B69</color>             <!-- "Marcar como concluída" -->
+    <color name="vermelho_urgente">#D92D20</color>       <!-- ícone de urgente -->
+
+    <!-- Cores antigas do modelo do Android Studio (mantidas até o tema novo substituí-las) -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
