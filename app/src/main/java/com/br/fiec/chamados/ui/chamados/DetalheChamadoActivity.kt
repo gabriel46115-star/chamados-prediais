@@ -17,6 +17,7 @@ import com.br.fiec.chamados.data.model.SolicitacaoResponseDTO
 import com.br.fiec.chamados.data.model.rotuloOuPadrao
 import com.br.fiec.chamados.data.network.RetrofitClient
 import com.br.fiec.chamados.databinding.ActivityDetalheChamadoBinding
+import com.br.fiec.chamados.ui.util.DitadoPorVoz
 import com.br.fiec.chamados.ui.util.EspacamentoBarras
 import com.br.fiec.chamados.ui.util.FormatoData
 import com.br.fiec.chamados.ui.util.VisualizadorImagem
@@ -43,6 +44,11 @@ class DetalheChamadoActivity : AppCompatActivity() {
 
     // Fotos anexadas ao chamado (toque abre em tela cheia)
     private val anexoAdapter = MiniaturaAdapter { imagem -> VisualizadorImagem.abrir(this, imagem) }
+
+    // Ditado por voz para o campo de comentário
+    private val ditado = DitadoPorVoz(this) { texto ->
+        DitadoPorVoz.inserirNoCampo(binding.etComentario, texto)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -121,6 +127,10 @@ class DetalheChamadoActivity : AppCompatActivity() {
 
         binding.btnEnviarComentario.setOnClickListener {
             enviarComentario()
+        }
+
+        binding.btnMicComentario.setOnClickListener {
+            ditado.ouvir("Fale o seu comentário")
         }
 
         // Botão "enviar" do próprio teclado

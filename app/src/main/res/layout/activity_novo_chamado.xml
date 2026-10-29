@@ -44,14 +44,30 @@
             android:inputType="text"
             android:layout_marginBottom="12dp" />
 
-        <EditText
-            android:id="@+id/etDescricao"
+        <!-- Descrição com botão de ditado por voz no canto inferior direito -->
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="120dp"
-            android:hint="Descreva o problema detalhadamente"
-            android:gravity="top|start"
-            android:inputType="textMultiLine"
-            android:layout_marginBottom="16dp" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+
+            <EditText
+                android:id="@+id/etDescricao"
+                android:layout_width="match_parent"
+                android:layout_height="120dp"
+                android:hint="Descreva o problema detalhadamente"
+                android:gravity="top|start"
+                android:inputType="textCapSentences|textMultiLine"
+                android:paddingEnd="48dp" />
+
+            <ImageButton
+                android:id="@+id/btnMicDescricao"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="bottom|end"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Ditar a descrição por voz"
+                android:src="@drawable/ic_microfone" />
+        </FrameLayout>
 
         <Button
             android:id="@+id/btnSelecionarFotos"

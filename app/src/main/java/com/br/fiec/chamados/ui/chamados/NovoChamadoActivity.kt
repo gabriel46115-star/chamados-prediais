@@ -14,6 +14,7 @@ import com.br.fiec.chamados.data.model.CreateSolicitacaoRequestDTO
 import com.br.fiec.chamados.data.model.TipoChamadoDTO
 import com.br.fiec.chamados.data.network.RetrofitClient
 import com.br.fiec.chamados.databinding.ActivityNovoChamadoBinding
+import com.br.fiec.chamados.ui.util.DitadoPorVoz
 import com.br.fiec.chamados.ui.util.EspacamentoBarras
 import com.br.fiec.chamados.ui.util.VisualizadorImagem
 import com.google.gson.Gson
@@ -31,6 +32,11 @@ class NovoChamadoActivity : AppCompatActivity() {
 
     // Pré-visualização das imagens escolhidas (toque abre em tela cheia)
     private val miniaturaAdapter = MiniaturaAdapter { imagem -> VisualizadorImagem.abrir(this, imagem) }
+
+    // Ditado por voz: o texto falado entra na descrição, na posição do cursor
+    private val ditado = DitadoPorVoz(this) { texto ->
+        DitadoPorVoz.inserirNoCampo(binding.etDescricao, texto)
+    }
 
     // Só libera o envio depois que os tipos de chamado forem carregados da API
     private var tiposCarregados = false
@@ -76,12 +82,7 @@ class NovoChamadoActivity : AppCompatActivity() {
                 if (response.isSuccessful) {
                     val tipos = response.body().orEmpty().sortedBy { it.nome }
                     if (tipos.isEmpty()) {
-                        mostrarAvisoNoSpinner("Nenhum tipo de chamado cadastrado")
-                        Toast.makeText(
-                            this@NovoChamadoActivity,
-                            "Nenhum tipo de chamado cadastrado. Peça ao administrador para cadastrar.",
-                            Toast.LENGTH_LONG
-                        ).show()
+                        mostrarAvisoNoSpinner("Nenhum tipo de chamado disponível")
                         return@launch
                     }
                     binding.spinnerTipo.adapter = ArrayAdapter(
@@ -126,6 +127,10 @@ class NovoChamadoActivity : AppCompatActivity() {
     private fun setupListeners() {
         binding.btnSelecionarFotos.setOnClickListener {
             selecionarImagensLauncher.launch("image/*")
+        }
+
+        binding.btnMicDescricao.setOnClickListener {
+            ditado.ouvir("Descreva o problema")
         }
 
         binding.btnEnviar.setOnClickListener {

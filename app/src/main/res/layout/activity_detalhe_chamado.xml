@@ -233,6 +233,14 @@
                         android:maxLines="4"
                         android:imeOptions="actionSend" />
 
+                    <ImageButton
+                        android:id="@+id/btnMicComentario"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Ditar o comentário por voz"
+                        android:src="@drawable/ic_microfone" />
+
                     <Button
                         android:id="@+id/btnEnviarComentario"
                         android:layout_width="wrap_content"
