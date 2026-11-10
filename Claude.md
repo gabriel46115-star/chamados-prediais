@@ -65,8 +65,12 @@ Autenticadas (Bearer JWT, validade de **30 minutos**, sem refresh):
 - `GET /api/v1/users/me` → `{ email, nome }` (ainda não devolve `id` nem `role`)
 - `GET /api/v1/admin/tipos` → tipos de chamado cadastrados no banco (`id, nome, icone, slaHoras`)
 - `GET /api/v1/solicitacoes/search?page&size&sort=createdAt,desc&status&...` → `Page<SolicitacaoResponseDTO>`
+- Na busca, os filtros de pessoa são listas: `usuarioSolicitanteIds` e `tecnicoResponsavelIds` (desde 29/10).
+- IA (chave só no servidor): `GET /api/v1/ia/status` → `{ disponivel }`; `POST /api/v1/ia/organizar-descricao`
+  `{ texto, localizacao? }` → `{ descricao, tipoSugeridoId, tipoSugeridoNome, pareceUrgente, motivoUrgencia }`.
+  Também existem `/ia/busca` (ADMIN/SUPERVISOR) e `/ia/solicitacoes/{id}/resumo`, ainda não usados no app.
 - `GET /api/v1/solicitacoes/{id}`
-- `POST /api/v1/solicitacoes` multipart: parte `dados` (JSON `{ tipoId, localId?, localizacaoProblema, descricao, numeroPatrimonio? }`) + partes `anexos` (imagens)
+- `POST /api/v1/solicitacoes` multipart: um campo de texto por dado (`tipoId`, `localizacaoProblema`, `descricao`, `numeroPatrimonio?`, `localId?`) + partes `anexos` (imagens). Desde 20/10 o back não aceita mais a parte JSON `dados`.
 - Outras já existentes no back-end e ainda não usadas no app: `/{id}/comentarios` (GET/POST), `/{id}/historico`,
   `/{id}/status`, `/{id}/prioridade`, `/{id}/tecnico`, `/{id}/urgente`, `/{id}/concluir`, `/{id}/validar`,
   `/{id}/rejeitar`, `/{id}/ajudantes/{ajudanteId}`

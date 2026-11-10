@@ -29,6 +29,14 @@ interface ApiService {
     @PATCH("api/v1/users/me/fcm-token")
     suspend fun atualizarFcmToken(@Body request: FcmTokenRequestDTO): Response<Unit>
 
+    // ---- Assistente de IA (implementado no back-end; a chave da IA fica só no servidor) ----
+
+    @GET("api/v1/ia/status")
+    suspend fun statusIa(): Response<IaStatusDTO>
+
+    @POST("api/v1/ia/organizar-descricao")
+    suspend fun organizarDescricao(@Body request: OrganizarDescricaoRequestDTO): Response<OrganizarDescricaoResponseDTO>
+
     // ---- Tipos de chamado (cadastrados no banco; leitura liberada a qualquer usuário logado) ----
 
     @GET("api/v1/admin/tipos")
@@ -44,8 +52,8 @@ interface ApiService {
         @Query("prioridade") prioridade: PrioridadeSolicitacao? = null,
         @Query("numeroPatrimonio") numeroPatrimonio: String? = null,
         @Query("localizacaoProblema") localizacaoProblema: String? = null,
-        @Query("usuarioSolicitanteId") usuarioSolicitanteId: String? = null,
-        @Query("tecnicoResponsavelId") tecnicoResponsavelId: String? = null,
+        @Query("usuarioSolicitanteIds") usuarioSolicitanteId: String? = null,
+        @Query("tecnicoResponsavelIds") tecnicoResponsavelId: String? = null,
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 10,
         // Mais recentes primeiro (o padrão do backend é createdAt crescente)
@@ -76,12 +84,18 @@ interface ApiService {
     ): Response<List<MovimentacaoResponseDTO>>
 
     // Criação de Chamado com Multipart:
-    // "dados" -> RequestBody JSON
-    // "anexos" -> Lista de MultipartBody.Part
+    // Cada campo vai como uma parte de texto do multipart (o back-end recebe com @RequestParam),
+    // e as imagens vão como partes "anexos". Partes opcionais nulas não são enviadas.
+    // Os textos precisam ser RequestBody "text/plain": se fossem String, o conversor do Gson
+    // colocaria aspas em volta e o back-end não conseguiria ler o UUID.
     @Multipart
     @POST("api/v1/solicitacoes")
     suspend fun criarSolicitacao(
-        @Part("dados") dados: RequestBody,
+        @Part("tipoId") tipoId: RequestBody,
+        @Part("localizacaoProblema") localizacaoProblema: RequestBody,
+        @Part("descricao") descricao: RequestBody,
+        @Part("numeroPatrimonio") numeroPatrimonio: RequestBody? = null,
+        @Part("localId") localId: RequestBody? = null,
         @Part anexos: List<MultipartBody.Part>? = null
     ): Response<SolicitacaoResponseDTO>
 

@@ -48,7 +48,7 @@
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="4dp">
 
             <EditText
                 android:id="@+id/etDescricao"
@@ -68,6 +68,17 @@
                 android:contentDescription="Ditar a descrição por voz"
                 android:src="@drawable/ic_microfone" />
         </FrameLayout>
+
+        <!-- Aparece só quando o servidor tem a IA disponível -->
+        <Button
+            android:id="@+id/btnOrganizarIa"
+            style="@style/Widget.Chamados.Botao.Texto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginBottom="12dp"
+            android:text="✨ Organizar com IA"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/btnSelecionarFotos"
